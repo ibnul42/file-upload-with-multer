@@ -23,24 +23,48 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 1000000,
+      fileSize: 1000000,
     },
     fileFilter: (req, file, cb) => {
-        if( file.mimetype === 'image/jpeg' ||
-            file.mimetype === 'image/png' ||
-            file.mimetype === 'image/jpg'
+        console.log(file);
+      if (file.fieldname === "avatar") {
+        if (
+          file.mimetype === "image/png" ||
+          file.mimetype === "image/jpg" ||
+          file.mimetype === "image/jpeg"
         ) {
-            cb(null, true);
+          cb(null, true);
         } else {
-            cb(new Error("File not supported"));
+          cb(new Error("Only .jpg, .png or .jpeg format allowed!"));
         }
+      } else if (file.fieldname === "doc") {
+        if (file.mimetype === "application/pdf") {
+          cb(null, true);
+        } else {
+          cb(new Error("Only .pdf format allowed!"));
+        }
+      } else {
+        cb(new Error("There was an unknown error!"));
+      }
+    },
+});
 
+app.post(
+    "/",
+    upload.fields([
+      {
+        name: "avatar",
+        maxCount: 2,
+      },
+      {
+        name: "doc",
+        maxCount: 1,
+      },
+    ]),
+    (req, res, next) => {
+      res.send("success");
     }
-});
-
-app.post('/', upload.single('avatar'), (req, res, next) => {
-    res.send("File Uploaded");
-});
+  );
 
 app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
